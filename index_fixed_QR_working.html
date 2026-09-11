@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>เกมพิชิตรูปเรขาคณิต</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#dff3ff,#f7e6ff);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px}.card{width:min(620px,100%);background:#fff;border-radius:28px;padding:28px;text-align:center;box-shadow:0 12px 35px #0002}h1{color:#5b3cc4}.shape{font-size:100px;margin:10px}.q{font-size:24px;font-weight:bold}.answers{display:grid;gap:12px;margin-top:20px}button{border:0;border-radius:15px;padding:15px;font-size:19px;cursor:pointer;-webkit-appearance:none;appearance:none;touch-action:manipulation;background:#e9e2ff}button:hover{transform:scale(1.02);background:#d9ccff}.bonus{font-size:18px;font-weight:bold;margin-top:8px}#qrBox img{width:180px;height:180px;border-radius:10px;border:8px solid #fff;box-shadow:0 4px 15px #0002}button:active{transform:scale(.98)}button:disabled{opacity:.8;cursor:default}body{-webkit-tap-highlight-color:transparent}.start,.next,.again{background:#6b4de6;color:white}.hidden{display:none}.result{height:35px;font-size:20px;font-weight:bold;margin-top:15px}.score{font-weight:bold}
+
+/* QR scan-friendly layout */
+#qrBox img{
+  width:220px !important;
+  height:220px !important;
+  max-width:75vw;
+  max-height:75vw;
+  padding:8px;
+  background:#fff;
+  border:0 !important;
+  border-radius:6px !important;
+  box-shadow:0 3px 14px #0002;
+  image-rendering:pixelated;
+}
+#qrBox a{
+  margin-top:12px;
+  padding:10px 18px;
+  border-radius:12px;
+  background:#eee9ff;
+  text-decoration:none;
+}
+#makeQr{
+  min-height:50px;
+  padding:14px 22px;
+  font-weight:bold;
+}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>🎮 เกมพิชิตรูปเรขาคณิต</h1>
+<section id="home"><p>ตอบคำถามให้ครบ 5 ข้อ แล้วดูคะแนนของคุณ!</p><button id="startBtn" class="start" type="button">▶ เริ่มเกม</button></section>
+<section id="game" class="hidden"><div class="score">ข้อ <span id="n"></span>/5 | คะแนน <span id="s">0</span> | โบนัส <span id="bonus">0</span></div><div id="shape" class="shape"></div><div id="q" class="q"></div><div id="answers" class="answers"></div><div id="result" class="result"></div><button id="next" class="next hidden" type="button">ข้อถัดไป ➜</button></section>
+<section id="end" class="hidden"><h2>🎉 จบเกม!</h2><p id="final" class="q"></p><p id="bonusFinal"></p><button id="againBtn" class="again" type="button">🔄 เล่นอีกครั้ง</button></section>
+<section id="qr" style="margin-top:22px;padding-top:18px;border-top:1px solid #eee;">
+<h3>📱 สแกนเพื่อเล่นใน LINE</h3>
+<p style="margin:6px auto 14px;font-size:14px;line-height:1.5;max-width:360px;">
+เปิดหน้านี้ด้วยลิงก์เว็บ แล้วกดสร้าง QR จากนั้นให้ LINE สแกน QR
+</p>
+<div id="qrBox" style="display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:40px;"></div>
+<button id="makeQr" type="button">🔗 สร้าง QR Code</button>
+<p id="qrNote" style="font-size:13px;line-height:1.5;margin:10px auto 0;max-width:360px;"></p>
+</section>
+</div>
+<script>
+const home=document.getElementById("home");
+const game=document.getElementById("game");
+const end=document.getElementById("end");
+const n=document.getElementById("n");
+const s=document.getElementById("s");
+const bonusEl=document.getElementById("bonus");
+const bonusFinal=document.getElementById("bonusFinal");
+const makeQr=document.getElementById("makeQr");
+const qrBox=document.getElementById("qrBox");
+const qrNote=document.getElementById("qrNote");
+const shape=document.getElementById("shape");
+const q=document.getElementById("q");
+const answers=document.getElementById("answers");
+const result=document.getElementById("result");
+const nextButton=document.getElementById("next");
+const final=document.getElementById("final");
+
+const data=[
+["📦","ลูกบาศก์มีหน้าทั้งหมดกี่หน้า และทุกหน้าเป็นรูปอะไร?",["4 หน้า เป็นสี่เหลี่ยมผืนผ้า","6 หน้า เป็นสี่เหลี่ยมจัตุรัส","6 หน้า เป็นสามเหลี่ยม","8 หน้า เป็นวงกลม"],1],
+["🔺","พีระมิดฐานสี่เหลี่ยมมีฐาน 1 หน้า และด้านข้างเป็นสามเหลี่ยม 4 หน้า รวมทั้งหมดกี่หน้า?",["4","5","6","8"],1],
+["🥫","ทรงกระบอกมีรัศมี 3 ซม. และสูง 5 ซม. ถ้าใช้ π ≈ 3.14 ปริมาตรประมาณเท่าไร?",["47.1 ซม.³","94.2 ซม.³","141.3 ซม.³","282.6 ซม.³"],2],
+["🎲","ลูกบาศก์มีความยาวด้านละ 4 ซม. ปริมาตรของลูกบาศก์เท่ากับเท่าไร?",["16 ซม.³","32 ซม.³","64 ซม.³","96 ซม.³"],2],
+["📐","ปริซึมสี่เหลี่ยมมุมฉากยาว 6 ซม. กว้าง 3 ซม. สูง 2 ซม. มีพื้นที่ผิวทั้งหมดเท่าไร?",["36 ซม.²","48 ซม.²","72 ซม.²","84 ซม.²"],2]
+]
+let i=0,score=0,bonus=0;
+function start(){i=0;score=0;bonus=0;bonusEl.textContent=0;home.classList.add("hidden");end.classList.add("hidden");game.classList.remove("hidden");show();}
+function show(){let d=data[i];n.textContent=i+1;s.textContent=score;bonusEl.textContent=bonus;shape.textContent=d[0];q.textContent=d[1];result.textContent="";nextBtn(false);answers.innerHTML="";d[2].forEach((x,j)=>{let b=document.createElement("button");b.textContent=x;b.onclick=()=>pick(j,b);answers.appendChild(b);});}
+function pick(j,b){let d=data[i];[...answers.children].forEach(x=>x.disabled=true);if(j===d[3]){score++;let earned=(i<3?2:1);bonus+=earned;result.textContent="✅ ถูกต้อง! +"+earned+" โบนัส";b.style.background="#9be7ad"}else{result.textContent="❌ ไม่ถูกต้อง";b.style.background="#ffb0b0"}s.textContent=score;nextBtn(true)}
+function next(){i++;if(i<5)show();else{game.classList.add("hidden");end.classList.remove("hidden");final.textContent=`คุณได้ ${score} / 5 คะแนน 🏆`;
+bonusFinal.textContent=`🎁 โบนัสที่ได้ ${bonus} คะแนน | รวม ${score+bonus} คะแนน จาก 13 คะแนน`}}
+function nextBtn(v){nextButton.classList.toggle("hidden",!v)}
+
+const startBtn=document.getElementById("startBtn"); const againBtn=document.getElementById("againBtn");
+document.addEventListener("DOMContentLoaded",()=>{startBtn.disabled=false;});
+startBtn.addEventListener("click", start);
+nextButton.addEventListener("click", next);
+againBtn.addEventListener("click", start);
+
+makeQr.addEventListener("click", function () {
+  qrBox.innerHTML = "";
+  qrNote.textContent = "";
+
+  // ใช้ URL ของหน้า GitHub Pages ปัจจุบัน
+  const url = window.location.href.split("#")[0].split("?")[0];
+
+  if (!/^https?:$/.test(window.location.protocol)) {
+    qrNote.textContent = "⚠️ กรุณาเปิดเกมผ่าน GitHub Pages ก่อนสร้าง QR Code";
+    return;
+  }
+
+  const img = document.createElement("img");
+  img.alt = "QR Code สำหรับเปิดเกม";
+  img.loading = "eager";
+  img.src =
+    "https://api.qrserver.com/v1/create-qr-code/?size=330x330&margin=10&data=" +
+    encodeURIComponent(url);
+
+  img.onerror = function () {
+    qrBox.innerHTML = "";
+    qrNote.textContent = "⚠️ โหลด QR ไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่";
+  };
+
+  qrBox.appendChild(img);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.textContent = "🔗 เปิดเกม";
+  link.style.display = "block";
+  link.style.marginTop = "10px";
+  link.style.fontWeight = "bold";
+  qrBox.appendChild(link);
+
+  qrNote.textContent = "✅ สแกนด้วย LINE แล้วแตะลิงก์เพื่อเข้าเกม";
+});
+</script>
+</body>
+</html>
